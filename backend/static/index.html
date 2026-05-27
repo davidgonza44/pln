@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PLN IA con Ollama Local — Resumen trazable e inconsistencias</title>
+  <meta name="description" content="MVP académico de procesamiento de lenguaje natural con Ollama local, FastAPI, extracción documental, trazabilidad, contradicciones y supervisión humana." />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <a href="#main" class="skip-link">Saltar al contenido principal</a>
+  <header>
+    <div class="wrap hero">
+      <div class="title-line">
+        <div>
+          <h1>Procesamiento Inteligente de Lenguaje Natural con IA</h1>
+          <p class="subtitle">MVP académico con <strong>Ollama local</strong> como motor LLM, backend FastAPI, extracción documental, resumen trazable, inconsistencias y supervisión humana.</p>
+        </div>
+        <div class="toolbar" aria-label="Controles de accesibilidad">
+          <button id="themeBtn" class="secondary" type="button">Alto contraste</button>
+          <button id="fontMinus" type="button" aria-label="Reducir tamaño de letra">A−</button>
+          <button id="fontPlus" type="button" aria-label="Aumentar tamaño de letra">A+</button>
+        </div>
+      </div>
+
+      <div class="chips" aria-label="Estado del prototipo">
+        <span class="chip warn"><strong>Estado:</strong> MVP académico</span>
+        <span class="chip good"><strong>Motor IA:</strong> Ollama local</span>
+        <span class="chip good"><strong>Privacidad:</strong> sin nube externa</span>
+        <span class="chip"><strong>Backend:</strong> FastAPI</span>
+        <span class="chip"><strong>Entrada:</strong> texto, .txt, .docx, .pdf textual, .xlsx</span>
+      </div>
+
+      <div class="notice" role="note" aria-label="Alcance real del prototipo">
+        <p><strong>Declaración para defensa oral:</strong> “El módulo presentado es un prototipo funcional representativo que sí puede usar un LLM local real mediante Ollama, sin enviar documentos a ChatGPT ni a servicios externos. Demuestra resumen trazable, comparación documental, generación de borrador y supervisión humana.”</p>
+        <p class="small">Las métricas de fidelidad semántica &gt;90%, alucinación &lt;3% y latencia &lt;5s siguen siendo objetivos de validación futura, no resultados certificados.</p>
+      </div>
+    </div>
+  </header>
+
+  <nav aria-label="Secciones del prototipo">
+    <div class="wrap nav-inner">
+      <a href="#conexion">Conexión Ollama</a>
+      <a href="#analizador">Analizador</a>
+      <a href="#resumen">Resumen trazable</a>
+      <a href="#contradicciones">Contradicciones</a>
+      <a href="#borrador">Borrador</a>
+      <a href="#metricas">Métricas</a>
+      <a href="#legal">Marco legal/ético</a>
+      <a href="#limitaciones">Limitaciones</a>
+      <a href="#guion">Guion</a>
+    </div>
+  </nav>
+
+  <main id="main" class="wrap">
+    <section id="conexion" class="card" aria-labelledby="conexion-title">
+      <h2 id="conexion-title">1. Conexión con Ollama local</h2>
+      <p class="muted">Este frontend consulta el backend local, y el backend consulta Ollama en <span class="kbd">http://localhost:11434</span>. Si Ollama no está abierto o el modelo no está instalado, el sistema mostrará un error claro.</p>
+      <div class="grid three">
+        <div>
+          <label for="modelSelect">Modelo instalado</label>
+          <select id="modelSelect"></select>
+        </div>
+        <div>
+          <label for="manualModel">Modelo manual</label>
+          <input id="manualModel" type="text" placeholder="Ej: qwen2.5:1.5b, qwen2.5:3b, llama3:latest" />
+        </div>
+        <div>
+          <label for="maxChunks">Chunks máximos por documento</label>
+          <input id="maxChunks" type="number" min="1" max="30" value="1" />
+          <label class="small" style="margin-top:8px; font-weight:400; display:flex; gap:8px; align-items:center;">
+            <input id="fastMode" type="checkbox" checked style="width:auto;" /> Modo 10s: contexto mínimo + fallback local
+          </label>
+        </div>
+      </div>
+      <div class="toolbar">
+        <button id="healthBtn" type="button" class="secondary">Verificar Ollama</button>
+        <button id="diagnosticsBtn" type="button" class="secondary">Diagnóstico rápido</button>
+        <button id="copyCmdBtn" type="button" class="secondary">Copiar comandos sugeridos</button>
+      </div>
+      <div id="healthStatus" class="callout" role="status" aria-live="polite">Verificando backend y Ollama…</div>
+      <div id="diagnosticsStatus" class="callout hidden" aria-live="polite"></div>
+    </section>
+
+    <section id="analizador" class="card" aria-labelledby="analizador-title">
+      <h2 id="analizador-title">2. Analizador documental</h2>
+      <p class="muted">Pega texto o carga archivos. La extracción se realiza en el backend local: .txt, .docx, .xlsx y PDF con texto embebido. Evita PDF escaneado para demo rápida; OCR queda fuera de esta versión.</p>
+
+      <div class="grid two">
+        <div>
+          <label for="docA">Documento A</label>
+          <input id="fileA" type="file" accept=".txt,.docx,.pdf,.xlsx" />
+          <div id="dropA" class="drop-zone" tabindex="0" role="button" aria-label="Arrastrar archivo para Documento A"><span><strong>Arrastra .txt, .docx, .pdf o .xlsx aquí</strong></span></div>
+          <p id="metaA" class="small muted">Sin archivo cargado.</p>
+          <textarea id="docA" placeholder="También puedes pegar aquí el texto del Documento A."></textarea>
+        </div>
+        <div>
+          <label for="docB">Documento B</label>
+          <input id="fileB" type="file" accept=".txt,.docx,.pdf,.xlsx" />
+          <div id="dropB" class="drop-zone" tabindex="0" role="button" aria-label="Arrastrar archivo para Documento B"><span><strong>Arrastra .txt, .docx, .pdf o .xlsx aquí</strong></span></div>
+          <p id="metaB" class="small muted">Opcional. Necesario para comparar contradicciones.</p>
+          <textarea id="docB" placeholder="También puedes pegar aquí el texto del Documento B."></textarea>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <button id="sampleBtn" type="button" class="secondary">Cargar ejemplo con inconsistencias</button>
+        <button id="analyzeBtn" type="button" class="primary">Analizar en máximo 10s</button>
+        <button id="clearBtn" type="button" class="danger">Limpiar</button>
+        <button id="downloadReportBtn" type="button" class="secondary">Descargar informe JSON</button>
+        <button id="printBtn" type="button" class="secondary">Imprimir / PDF</button>
+      </div>
+      <div class="progress" aria-hidden="true"><div id="progressBar"></div></div>
+      <div id="runStatus" class="callout" role="status" aria-live="polite">Listo para cargar documentos y consultar Ollama.</div>
+    </section>
+
+    <section id="resumen" class="card" aria-labelledby="resumen-title">
+      <h2 id="resumen-title">3. Resumen trazable con control humano</h2>
+      <p class="muted">Cada afirmación debe volver a un chunk fuente: documento, página estimada, sección, párrafos, fragmento y confianza reportada por el LLM local.</p>
+      <div id="summaryResults" class="result-list" aria-live="polite"><div class="callout">Ejecuta el análisis para ver el resumen trazable.</div></div>
+    </section>
+
+    <section id="contradicciones" class="card" aria-labelledby="contradicciones-title">
+      <h2 id="contradicciones-title">4. Detección de inconsistencias con LLM local</h2>
+      <p class="muted">El modelo local busca contradicciones numéricas, definiciones divergentes, permitido/prohibido, privacidad y supervisión humana. Requiere validación humana.</p>
+      <div id="findingResults" class="result-list" aria-live="polite"><div class="callout">Ejecuta el análisis con dos documentos para ver hallazgos.</div></div>
+    </section>
+
+    <section id="borrador" class="card" aria-labelledby="borrador-title">
+      <h2 id="borrador-title">5. Generación de documento derivado</h2>
+      <p class="muted">El borrador se genera con Ollama local y queda editable antes de cualquier uso final.</p>
+      <div id="draftResults" class="draft-box" aria-live="polite">Ejecuta el análisis para generar un borrador.</div>
+    </section>
+
+    <section id="metricas" class="card" aria-labelledby="metricas-title">
+      <h2 id="metricas-title">6. Métricas: objetivos de calidad, no resultados comprobados</h2>
+      <div class="callout warning"><strong>Corrección importante:</strong> usar Ollama mejora la coherencia con el proyecto, pero no certifica automáticamente las métricas del Word.</div>
+      <div class="table-wrap" style="margin-top: 14px;">
+        <table>
+          <thead><tr><th>Métrica</th><th>Meta del proyecto</th><th>Estado en este MVP</th><th>Qué falta</th></tr></thead>
+          <tbody>
+            <tr><td>Fidelidad semántica</td><td>&gt;90%</td><td><span class="status-warn">No validada</span></td><td>Dataset, resumen humano, rúbrica y evaluación comparativa.</td></tr>
+            <tr><td>Tasa de alucinación</td><td>&lt;3%</td><td><span class="status-warn">No medida</span></td><td>Verificar cada afirmación contra fragmentos fuente.</td></tr>
+            <tr><td>Latencia</td><td>&lt;5s para 50 páginas</td><td><span id="latencyMetric" class="status-warn">Pendiente</span></td><td>Pruebas con documentos largos y hardware definido.</td></tr>
+            <tr><td>200 páginas</td><td>Objetivo de diseño</td><td><span class="status-danger">No certificado</span></td><td>Chunking avanzado, RAG/map-reduce y pruebas de memoria.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="legal" class="card" aria-labelledby="legal-title">
+      <h2 id="legal-title">7. Matriz de evidencia legal, ética y accesibilidad</h2>
+      <p class="muted">No afirma cumplimiento legal definitivo; evidencia controles visibles del MVP.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Norma/principio</th><th>Obligación</th><th>Implementación</th><th>Evidencia visible</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr><td>AI Act UE — Transparencia</td><td>Informar contenido asistido por IA.</td><td>Etiquetas de LLM local/Ollama.</td><td>Tarjetas y borrador.</td><td><span class="status-ok">Parcialmente evidenciado</span></td></tr>
+            <tr><td>AI Act UE — Supervisión humana</td><td>Permitir control humano efectivo.</td><td>Aceptar, editar o rechazar afirmaciones.</td><td>Botones por tarjeta.</td><td><span class="status-ok">Evidenciado en MVP</span></td></tr>
+            <tr><td>Privacidad/soberanía de datos</td><td>Evitar salida de documentos a nube externa.</td><td>Ollama y FastAPI locales.</td><td>Sin API ChatGPT/Claude/Gemini.</td><td><span class="status-ok">Mejorado</span></td></tr>
+            <tr><td>UNESCO — Inclusión</td><td>Reducir barreras de acceso.</td><td>Contraste, tamaño de letra, estructura semántica.</td><td>Controles A+/A− y alto contraste.</td><td><span class="status-warn">Inicial, no auditado WCAG</span></td></tr>
+            <tr><td>G20 — IA centrada en humano</td><td>Productividad sin sustituir juicio profesional.</td><td>Revisión obligatoria de salidas.</td><td>Limitaciones y control humano.</td><td><span class="status-ok">Parcial</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="limitaciones" class="card" aria-labelledby="limitaciones-title">
+      <h2 id="limitaciones-title">8. Limitaciones honestas</h2>
+      <div class="grid two">
+        <div class="callout"><h3>Calidad del modelo</h3><p>Depende del modelo instalado, su tamaño, idioma y hardware. Un modelo pequeño puede resumir peor o detectar menos contradicciones.</p></div>
+        <div class="callout"><h3>PDF escaneado</h3><p>No hay OCR integrado. Solo se extrae PDF textual con texto embebido.</p></div>
+        <div class="callout"><h3>Métricas</h3><p>Fidelidad, alucinación y latencia aún requieren dataset y evaluación experimental.</p></div>
+        <div class="callout"><h3>Trazabilidad</h3><p>La página es estimada para texto pegado y algunos formatos; en PDF textual puede conservar marcas de página, pero no coordenadas visuales.</p></div>
+        <div class="callout"><h3>Arquitectura</h3><p>Ya hay separación frontend/backend, pero para producción faltan base de datos, usuarios, logs, cifrado en reposo y búsqueda vectorial.</p></div>
+        <div class="callout"><h3>Más de dos documentos</h3><p>El MVP compara Documento A y B. La versión completa debe soportar múltiples documentos y matriz N contra N.</p></div>
+      </div>
+    </section>
+
+    <section id="guion" class="card" aria-labelledby="guion-title">
+      <h2 id="guion-title">9. Guion breve de exposición</h2>
+      <ol>
+        <li><strong>30 segundos:</strong> objetivo: reducir tiempo de lectura documental sin perder verificabilidad.</li>
+        <li><strong>45 segundos:</strong> explicar cambio clave: ahora usa Ollama local como alternativa privada a ChatGPT.</li>
+        <li><strong>90 segundos:</strong> cargar documentos, analizar y mostrar resumen trazable con fragmentos fuente.</li>
+        <li><strong>60 segundos:</strong> mostrar contradicciones detectadas y explicar que requieren validación humana.</li>
+        <li><strong>45 segundos:</strong> demostrar aceptar, editar o rechazar salidas.</li>
+        <li><strong>45 segundos:</strong> mostrar matriz legal/ética y privacidad local.</li>
+        <li><strong>25 segundos:</strong> cerrar: métricas son objetivos pendientes de validación.</li>
+      </ol>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">Versión Ollama/FastAPI. Los documentos se procesan localmente. Este MVP no sustituye auditoría legal, validación WCAG, OCR ni evaluación experimental con dataset.</div>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

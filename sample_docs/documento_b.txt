@@ -1,0 +1,11 @@
+Manual operativo actualizado
+
+La empresa acepta devoluciones de productos dentro de los 30 días posteriores a la compra, incluso cuando el cliente no conserve la factura original si el sistema ubica la venta.
+
+El sistema aprueba automáticamente el contenido sin intervención humana cuando detecta coincidencia documental suficiente. No se requiere validación manual para solicitudes clasificadas como simples.
+
+Procedimiento de datos y soporte
+
+Los documentos internos pueden enviarse a servidores externos para procesamiento automático cuando sea necesario para mejorar el servicio. El usuario debe ser informado de que el resultado puede contener errores.
+
+El tiempo estimado de revisión de una solicitud es de 48 horas. Para productos defectuosos, se prohíbe el cambio directo si no existe autorización del gerente.
